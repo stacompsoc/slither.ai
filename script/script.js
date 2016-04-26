@@ -69,13 +69,6 @@
 
     setInterval(function() {
         try {
-            if (foods.length == 0) {
-                setDirection(directionTowards(grd, grd));
-            } else {
-                var closest = closestFood();
-                setDirection(directionTowards(closest.rx, closest.ry));
-            }
-
             var xtot = 0;
             var ytot = 0;
 
@@ -110,10 +103,17 @@
             ytot *= -1;
 
             var threat = Math.sqrt((xtot * xtot) + (ytot * ytot));
-            if (threat > 0.0002) {
+            if (threat > 0.0003) {
                 var avoidDirection = directionTowards(snake.xx + xtot, snake.yy + ytot);
                 console.log("AVOIDING THREAT: " + avoidDirection);
                 setDirection(avoidDirection);
+            } else {
+                if (foods.length == 0) {
+                    setDirection(directionTowards(grd/2, grd/2));
+                } else {
+                    var closest = closestFood();
+                    setDirection(directionTowards(closest.rx, closest.ry));
+                }
             }
         } catch (e) {
             console.log("Error caught: " + e);
