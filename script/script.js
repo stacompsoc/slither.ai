@@ -16,11 +16,11 @@ var Vector2 = (function() {
 	};
 
 	Vector2.prototype.magnitude = function() {
-		return Math.hypot(thix.x,this.y);
+		return Math.hypot(this.x,this.y);
 	};
 
 	Vector2.prototype.norm = function() {
-		var mag = this.magnitude;
+		var mag = this.magnitude();
 		return new Vector2(this.x/mag,this.y/mag);
 	};
 
@@ -112,9 +112,10 @@ var Vector2 = (function() {
     setInterval(function() {
     	if(!playing) return;
 
+    	var ourSnakePos = new Vector2(snake.xx,snake.yy);
+
         try {
-            var xtot = 0;
-            var ytot = 0;
+        	var sumVec = new Vector2(0,0);
 
             for (var snakeId in os) {
                 if (os.hasOwnProperty(snakeId)) {
@@ -125,30 +126,27 @@ var Vector2 = (function() {
                         for (var point in currentSnake.pts) {
                             var pt = currentSnake.pts[point];
 
-                            var vx = pt.xx - snake.xx;
-                            var vy = pt.yy - snake.yy;
+                            var opponentSegmentPos = new Vector2(pt.xx,pt.yy);
 
-                            var len = Math.sqrt((vx*vx) + (vy*vy));
+                            var vecToOpponent = opponentSegmentPos.sub(ourSnakePos);
 
-                            vx /= len;
-                            vy /= len;
+                            var opponentMagnitude = vecToOpponent.magnitude();
 
-                            vx *= (1 / (len * len));
-                            vy *= (1 / (len * len));
+                            var normVec = vecToOpponent.norm();
 
-                            xtot += vx;
-                            ytot += vy;
+                            var vectorInverse = normVec.scalarMul(1/(opponentMagnitude*opponentMagnitude));
+
+                            sumVec = sumVec.add(vectorInverse);
                         }
                     }
                 }
             }
 
-            xtot *= -1;
-            ytot *= -1;
+            sumVec = sumVec.scalarMul(-1);
 
-            var threat = Math.sqrt((xtot * xtot) + (ytot * ytot));
+            var threat = sumVec.magnitude();
             if (threat > 0.0003) {
-                var avoidDirection = directionTowards(new Vector2(snake.xx + xtot, snake.yy + ytot));
+                var avoidDirection = directionTowards(ourSnakePos.add(sumVec));
                 console.log("AVOIDING THREAT: " + avoidDirection);
                 setDirection(avoidDirection);
             } else {
