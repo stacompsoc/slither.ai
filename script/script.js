@@ -13,6 +13,16 @@
     var direction = 0;
     var step = 5;
 
+    var showDebug = function () {
+       var div = document.createElement('div');
+       div.textContent = "Hello";
+       div.style.zIndex = 100000000;
+       div.style.background = "white";
+       document.getElementsByClassName("sadg1 nsi btnt")[1].appendChild(div);
+    };
+
+    showDebug();
+
     var distToPlayer = function(food) {
         return Math.abs(food.rx - snake.xx) + Math.abs(food.ry - snake.yy);
     };
@@ -44,13 +54,21 @@
         ws.send(packet);
     };
 
+    var directionTowards = function(x, y) {
+        var dy = y - snake.yy;
+        var dx = x - snake.xx;
+        var angleToTurn = Math.atan(dy/dx) + Math.PI;
+        return (125 * angleToTurn) / Math.PI;
+    };
+
     setInterval(function() {
         try {
-            var closest = closestFood();
-            var dy = closest.ry - snake.yy;
-            var dx = closest.rx - snake.xx;
-            var angleToTurn = Math.atan(dy/dx) + Math.PI;
-            setDirection((125 * angleToTurn) / Math.PI);
+            if (foods.length == 0) {
+                setDirection(directionTowards(grd, grd));
+            } else {
+                var closest = closestFood();
+                setDirection(directionTowards(closest.rx, closest.ry));
+            }
         } catch (e) {
             console.log("Error caught: " + e);
         }
