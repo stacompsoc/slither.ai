@@ -17,3 +17,10 @@ ws.send(packet);
 * **0-250** - send in order to turn the snake
 * **253** - enter speed mode
 * **254** - leave speed mode
+
+## Getting information about the snakes
+```javascript
+console.log(os)
+```
+`os` is a global object mapping snake ids to information about each snakes position.
+Each object has property `.pts`, a list which contains objects with `.xx` and `.yy`.
