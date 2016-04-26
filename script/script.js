@@ -8,31 +8,49 @@
 // @grant        none
 // ==/UserScript==
 
-function Vector2(x,y) {
-	this.x = x;
-	this.y = y;
-};
 
-Vector2.prototype.magnitude = function() {
-	return Math.hypot(thix.x,this.y);
-};
+var Vector2 = (function() {
+	var Vector2 = function(x,y) {
+		this.x = x;
+		this.y = y;
+	};
 
-Vector2.prototype.norm = function() {
-	var mag = this.magnitude;
-	return new Vector2(this.x/mag,this.y/mag);
-};
+	Vector2.prototype.magnitude = function() {
+		return Math.hypot(thix.x,this.y);
+	};
 
-Vector2.prototype.scalarMul = function(scalar) {
-	return new Vector2(scalar*this.x, scalar*this.y);
-};
+	Vector2.prototype.norm = function() {
+		var mag = this.magnitude;
+		return new Vector2(this.x/mag,this.y/mag);
+	};
 
-Vector2.prototype.add = function(otherVec) {
-	return new Vector2(this.x + otherVec.x, this.y + otherVec.y);
-};
+	Vector2.prototype.scalarMul = function(scalar) {
+		return new Vector2(scalar*this.x, scalar*this.y);
+	};
 
-Vector2.prototype.sub = function(otherVec) {
-	return new Vector2(this.x - otherVec.x, this.y - otherVec.y);
-};
+	Vector2.prototype.add = function(otherVec) {
+		return new Vector2(this.x + otherVec.x, this.y + otherVec.y);
+	};
+
+	Vector2.prototype.sub = function(otherVec) {
+		return new Vector2(this.x - otherVec.x, this.y - otherVec.y);
+	};
+
+	Vector2.prototype.toString = function() {
+		return "(" + this.x + ", " + this.y + ")";
+	};
+
+	Vector2.prototype.angle = function() {
+		var ang = Math.atan2(this.y,this.x);
+		if(ang < 0) {
+			ang += Math.PI*2;
+		}
+		return ang;
+	};
+
+	return Vector2;
+})();
+
 
 (function() {
     'use strict';
@@ -80,20 +98,20 @@ Vector2.prototype.sub = function(otherVec) {
         ws.send(packet);
     };
 
-    var directionTowards = function(x, y) {
-        var dy = y - snake.yy;
-        var dx = x - snake.xx;
-        var radians = Math.atan2(dy, dx);
+    var directionTowards = function(towardsPos) {
+    	var snakePos = new Vector2(snake.xx,snake.yy);
 
-        while (radians < 0) {
-            radians += Math.PI * 2;
-        }
+    	var directionVec = towardsPos.sub(snakePos);
+        
+        var angle = directionVec.angle();
 
-        var adjusted = (125 / Math.PI) * radians;
+        var adjusted = (125 / Math.PI) * angle;
         return adjusted;
     };
 
     setInterval(function() {
+    	if(!playing) return;
+
         try {
             var xtot = 0;
             var ytot = 0;
@@ -130,15 +148,15 @@ Vector2.prototype.sub = function(otherVec) {
 
             var threat = Math.sqrt((xtot * xtot) + (ytot * ytot));
             if (threat > 0.0003) {
-                var avoidDirection = directionTowards(snake.xx + xtot, snake.yy + ytot);
+                var avoidDirection = directionTowards(new Vector2(snake.xx + xtot, snake.yy + ytot));
                 console.log("AVOIDING THREAT: " + avoidDirection);
                 setDirection(avoidDirection);
             } else {
                 if (foods.length == 0) {
-                    setDirection(directionTowards(grd/2, grd/2));
+                    setDirection(directionTowards(new Vector2(grd/2, grd/2)));
                 } else {
                     var closest = closestFood();
-                    setDirection(directionTowards(closest.rx, closest.ry));
+                    setDirection(directionTowards(new Vector2(closest.rx, closest.ry)));
                 }
             }
         } catch (e) {
