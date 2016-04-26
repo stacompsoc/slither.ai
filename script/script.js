@@ -75,6 +75,46 @@
                 var closest = closestFood();
                 setDirection(directionTowards(closest.rx, closest.ry));
             }
+
+            var xtot = 0;
+            var ytot = 0;
+
+            for (var snakeId in os) {
+                if (os.hasOwnProperty(snakeId)) {
+                    if (snakeId != "s" + snake.id) {
+                        // Opponent Snake
+                        var currentSnake = os[snakeId];
+
+                        for (var point in currentSnake.pts) {
+                            var pt = currentSnake.pts[point];
+
+                            var vx = pt.xx - snake.xx;
+                            var vy = pt.yy - snake.yy;
+
+                            var len = Math.sqrt((vx*vx) + (vy*vy));
+
+                            vx /= len;
+                            vy /= len;
+
+                            vx *= (1 / (len * len));
+                            vy *= (1 / (len * len));
+
+                            xtot += vx;
+                            ytot += vy;
+                        }
+                    }
+                }
+            }
+
+            xtot *= -1;
+            ytot *= -1;
+
+            var threat = Math.sqrt((xtot * xtot) + (ytot * ytot));
+            if (threat > 0.0002) {
+                var avoidDirection = directionTowards(snake.xx + xtot, snake.yy + ytot);
+                console.log("AVOIDING THREAT: " + avoidDirection);
+                setDirection(avoidDirection);
+            }
         } catch (e) {
             console.log("Error caught: " + e);
         }
