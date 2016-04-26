@@ -14,11 +14,11 @@
     var step = 5;
 
     var showDebug = function () {
-       var div = document.createElement('div');
-       div.textContent = "Hello";
-       div.style.zIndex = 100000000;
-       div.style.background = "white";
-       document.getElementsByClassName("sadg1 nsi btnt")[1].appendChild(div);
+        var div = document.createElement('div');
+        div.textContent = "Hello";
+        div.style.zIndex = 100000000;
+        div.style.background = "white";
+        document.getElementsByClassName("sadg1 nsi btnt")[1].appendChild(div);
     };
 
     showDebug();
@@ -57,8 +57,14 @@
     var directionTowards = function(x, y) {
         var dy = y - snake.yy;
         var dx = x - snake.xx;
-        var angleToTurn = Math.atan(dy/dx) + Math.PI;
-        return (125 * angleToTurn) / Math.PI;
+        var radians = Math.atan2(dy, dx);
+
+        while (radians < 0) {
+            radians += Math.PI * 2;
+        }
+
+        var adjusted = (125 / Math.PI) * radians;
+        return adjusted;
     };
 
     setInterval(function() {
