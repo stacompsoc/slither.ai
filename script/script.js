@@ -8,6 +8,32 @@
 // @grant        none
 // ==/UserScript==
 
+function Vector2(x,y) {
+	this.x = x;
+	this.y = y;
+};
+
+Vector2.prototype.magnitude = function() {
+	return Math.hypot(thix.x,this.y);
+};
+
+Vector2.prototype.norm = function() {
+	var mag = this.magnitude;
+	return new Vector2(this.x/mag,this.y/mag);
+};
+
+Vector2.prototype.scalarMul = function(scalar) {
+	return new Vector2(scalar*this.x, scalar*this.y);
+};
+
+Vector2.prototype.add = function(otherVec) {
+	return new Vector2(this.x + otherVec.x, this.y + otherVec.y);
+};
+
+Vector2.prototype.sub = function(otherVec) {
+	return new Vector2(this.x - otherVec.x, this.y - otherVec.y);
+};
+
 (function() {
     'use strict';
     var direction = 0;
