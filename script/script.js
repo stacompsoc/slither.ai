@@ -1,9 +1,8 @@
 // ==UserScript==
-// @name         New Userscript
-// @namespace    http://tampermonkey.net/
+// @name         Slither.ai
 // @version      0.1
 // @description  try to take over the world!
-// @author       You
+// @author       STACS
 // @match        http://slither.io
 // @grant        none
 // ==/UserScript==
