@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Slither.ai
-// @version      0.1
+// @version      0.3
 // @description  try to take over the world!
 // @author       STACS
 // @match        http://slither.io
