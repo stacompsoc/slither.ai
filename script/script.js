@@ -87,7 +87,7 @@ var Vector2 = (function() {
 
     // Returns a score of how desirable a piece of food is for the player
     var foodScore = function(food) {
-        var foodSize = food.sz * food.sz;
+        var foodSize = food.sz * food.sz * 0.5;
 
         return foodSize/distanceToFood(food);
     };
@@ -105,7 +105,7 @@ var Vector2 = (function() {
     // Returns the piece of food the player will move towards
     // This is determined by calling "foodScore" on each piece of food
     var closestFood = function() {
-        return foods.filter(function(food) {
+        var best = foods.filter(function(food) {
             if (food == null) return false;
 
             if (distanceToFood(food) > 60) {
@@ -123,6 +123,8 @@ var Vector2 = (function() {
             if (current == null) return best;
             return foodScore(best) > foodScore(current) ? best : current;
         }, {xx: 0, yy: 0, sz: 1});
+
+        return best;
     };
 
     var directionTowards = function(towardsPos) {
@@ -156,9 +158,27 @@ var Vector2 = (function() {
         packet[0] = val;
         ws.send(packet);
     };
+
+    var getDrawPosition = function(vec) {
+        return new Vector2(mww2 + (vec.x - view_xx) * gsc, mhh2 + (vec.y - view_yy) * gsc);
+    };
+
+    var drawLineOverlay = function(destination, colorString) {
+        var canvas = document.getElementsByTagName("canvas")[2];
+        var ctx = canvas.getContext("2d");
+        ctx.strokeStyle = colorString;
+        ctx.lineWidth = 7;
+
+        ctx.beginPath();
+        var foodLineFrom = getDrawPosition(destination);
+        ctx.moveTo(foodLineFrom.x,foodLineFrom.y);
+
+        var foodLineTo = getDrawPosition(snakePosV);
+        ctx.lineTo(foodLineTo.x,foodLineTo.y);
+        ctx.stroke();
+    };
+
     // ----- /INTERFACE -----
-
-
     setInterval(function() {
         if(!playing) return;
 
@@ -174,6 +194,7 @@ var Vector2 = (function() {
                         for (var point in currentSnake.pts) {
                             var pt = currentSnake.pts[point];
                             var opponentSegmentPos = new Vector2(pt.xx,pt.yy);
+
                             var vecToOpponent = opponentSegmentPos.sub(snakePosV);
                             var opponentMagnitude = vecToOpponent.magnitude();
 
@@ -188,10 +209,11 @@ var Vector2 = (function() {
             sumVec = sumVec.scalarMul(-1);
             var threshold = sumVec.magnitude();
 
-            if (threshold > 0.00026) {
+            if (threshold > 0.00027) {
                 var avoidDirection = directionTowards(snakePosV.add(sumVec));
                 status = "AVOIDING THREAT: " + avoidDirection;
                 setDirection(avoidDirection);
+                drawLineOverlay(snakePosV.add(sumVec.norm().scalarMul(200)), "#FF0000");
             } else {
                 if (foods.length == 0) {
                     setDirection(directionTowards(new Vector2(grd/2, grd/2)));
@@ -200,6 +222,7 @@ var Vector2 = (function() {
                     var closest = closestFood();
                     status = "GETTING FOOD";
                     setDirection(directionTowards(new Vector2(closest.rx, closest.ry)));
+                    drawLineOverlay(new Vector2(closest.rx, closest.ry), "#7FFF00");
                 }
             }
 
