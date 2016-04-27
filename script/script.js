@@ -47,12 +47,23 @@ var Vector2 = (function() {
         return ang;
     };
 
+    Vector2.prototype.gameDirection = function() {
+        return (125 / Math.PI) * this.angle();
+    };
+
     return Vector2;
 })();
 
 
 (function() {
     'use strict';
+
+    // CONSTANTS
+    var fov = 124; // Food gathering field of view (0-250)
+
+    // STATE
+    var snakeDirV = new Vector2(0,0);
+    var snakePosV = new Vector2(0,0);
 
     // UI STUFF
     var status = "STARTING...";
@@ -76,7 +87,7 @@ var Vector2 = (function() {
 
     // Returns a score of how desirable a piece of food is for the player
     var foodScore = function(food) {
-        var playerToFood = curSnakePos.sub(new Vector2(food.rx,food.ry));
+        var playerToFood = snakePosV.sub(new Vector2(food.rx,food.ry));
         var foodSize = food.sz * food.sz;
 
         return foodSize/playerToFood.magnitude();
@@ -85,19 +96,27 @@ var Vector2 = (function() {
     // Returns the piece of food the player will move towards
     // This is determined by calling "foodScore" on each piece of food
     var closestFood = function() {
-        return foods.reduce(function(best,current) {
-            if (current == null) return best;
+        return foods.filter(function(food) {
+            // Filter food to that which is in the field of view of the snake
+            if (food == null) return false;
+            var towardsFood = directionTowards(new Vector2(food.rx, food.ry));
+            var snakeDir = snakeDirV.gameDirection();
+            return (gameAngleDifference(towardsFood, snakeDir) < (fov/2));
+        }).reduce(function(best,current) {
+            // Find the piece of food with the best score
             if (best == null) throw "No foods :(";
+            if (current == null) return best;
             return foodScore(best) > foodScore(current) ? best : current;
-        });
+        }, {xx: 0, yy: 0, sz: 1});
     };
 
     var directionTowards = function(towardsPos) {
-        var snakePos = new Vector2(snake.xx,snake.yy);
-        var directionVec = towardsPos.sub(snakePos);
-        var angle = directionVec.angle();
-        var adjusted = (125 / Math.PI) * angle;
-        return adjusted;
+        return towardsPos.sub(snakePosV).gameDirection();
+    };
+
+    var gameAngleDifference = function(a, b) {
+        var phi = Math.abs(b - a) % 250;
+        return phi > 125 ? 250 - phi : phi;
     };
 
     // ----- INTERFACE -----
@@ -128,8 +147,6 @@ var Vector2 = (function() {
     setInterval(function() {
         if(!playing) return;
 
-        var ourSnakePos = new Vector2(snake.xx,snake.yy);
-
         try {
             var sumVec = new Vector2(0,0);
 
@@ -142,7 +159,7 @@ var Vector2 = (function() {
                         for (var point in currentSnake.pts) {
                             var pt = currentSnake.pts[point];
                             var opponentSegmentPos = new Vector2(pt.xx,pt.yy);
-                            var vecToOpponent = opponentSegmentPos.sub(ourSnakePos);
+                            var vecToOpponent = opponentSegmentPos.sub(snakePosV);
                             var opponentMagnitude = vecToOpponent.magnitude();
 
                             var normVec = vecToOpponent.norm();
@@ -157,7 +174,7 @@ var Vector2 = (function() {
             var threshold = sumVec.magnitude();
 
             if (threshold > 0.00027) {
-                var avoidDirection = directionTowards(ourSnakePos.add(sumVec));
+                var avoidDirection = directionTowards(snakePosV.add(sumVec));
                 status = "AVOIDING THREAT: " + avoidDirection;
                 setDirection(avoidDirection);
             } else {
@@ -171,7 +188,14 @@ var Vector2 = (function() {
                 }
             }
 
+            // Update State and Screen
             repaintHeader();
+
+            if (snake) {
+                var newSnakePosV = new Vector2(snake.xx, snake.yy);
+                snakeDirV = newSnakePosV.sub(snakePosV);
+                snakePosV = newSnakePosV;
+            }
         } catch (e) {
             console.log("Error caught: " + e);
         }
