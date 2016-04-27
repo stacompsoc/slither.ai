@@ -56,6 +56,13 @@ var Vector2 = (function() {
     'use strict';
     var direction = 0;
     var step = 5;
+    var inDebugMode = false;
+
+    var turningRadius = 50;
+
+    var angleDifference = function (angle1, angle2) {
+    	return Math.atan2(Math.sin(angle1-angle2),Math.cos(angle1-angle2));
+    };
 
     var showDebug = function () {
         var div = document.createElement('div');
@@ -65,17 +72,28 @@ var Vector2 = (function() {
         document.getElementsByClassName("sadg1 nsi btnt")[1].appendChild(div);
     };
 
-    showDebug();
+    if(inDebugMode) {
+		showDebug();
+	}
 
     var distToPlayer = function(food) {
         return Math.abs(food.rx - snake.xx) + Math.abs(food.ry - snake.yy);
     };
 
-    var closestFood = function() {
-        return foods.reduce(function(x,y) {
-            if (y == null) return x;
-            if (x == null) throw "No foods :(";
-            return distToPlayer(x) > distToPlayer(y) ? y : x;
+    var foodScore = function(food, snakeHeading) {
+    	var curSnakePos = new Vector2(snake.xx,snake.yy);
+    	var vecToFood = curSnakePos.sub(new Vector2(food.rx,food.ry));
+
+    	var angleDelta = Math.abs(angleDifference(snakeHeading.angle(),vecToFood.angle()));
+
+    	return (vecToFood.magnitude() + angleDelta*turningRadius)/(food.sz*food.sz);
+    };
+
+    var closestFood = function(snakeHeading) {
+        return foods.reduce(function(best,current) {
+            if (current == null) return best;
+            if (best == null) throw "No foods :(";
+            return foodScore(best,snakeHeading) > foodScore(current,snakeHeading) ? current : best;
         });
     };
 
@@ -109,10 +127,12 @@ var Vector2 = (function() {
         return adjusted;
     };
 
+    var lastSnakePos = new Vector2(0,0);
     setInterval(function() {
     	if(!playing) return;
 
     	var ourSnakePos = new Vector2(snake.xx,snake.yy);
+    	var snakeHeading = ourSnakePos.sub(lastSnakePos).norm();
 
         try {
         	var sumVec = new Vector2(0,0);
@@ -147,16 +167,22 @@ var Vector2 = (function() {
             var threat = sumVec.magnitude();
             if (threat > 0.0003) {
                 var avoidDirection = directionTowards(ourSnakePos.add(sumVec));
-                console.log("AVOIDING THREAT: " + avoidDirection);
+                if(inDebugMode) {
+                	console.log("AVOIDING THREAT: " + avoidDirection);
+        		}
                 setDirection(avoidDirection);
             } else {
                 if (foods.length == 0) {
                     setDirection(directionTowards(new Vector2(grd/2, grd/2)));
                 } else {
-                    var closest = closestFood();
+                    var closest = closestFood(snakeHeading);
+                    if(inDebugMode) {
+                    	console.log("Best food score: " + foodScore(closest,snakeHeading));
+                	}
                     setDirection(directionTowards(new Vector2(closest.rx, closest.ry)));
                 }
             }
+            lastSnakePos = ourSnakePos;
         } catch (e) {
             console.log("Error caught: " + e);
         }
