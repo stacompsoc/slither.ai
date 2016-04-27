@@ -1,6 +1,6 @@
 # Slither AI
 
-![Video](https://media.giphy.com/media/l3V0o5Nc61Ql216sE/giphy.gif)
+![Video](/screenshots/vid.gif)
 
 We are building an AI for [slither.io](slither.io), a multiplayer snake game.
 We want our bot to be able to play above-average and reach the leaderboards. Currently, our AI uses a combination of gathering food and avoiding enemies to
@@ -20,7 +20,7 @@ This is a list of various sites and resources which may be useful for the projec
 
 - [slither](https://github.com/iiegor/slither)
 - [slither-go](https://github.com/iiegor/slither-go)
-- [protocol](https://github.com/ClitherProject/Slither.io-Protocol)
+- [protocol](http://github.com/ClitherProject/Slither.io-Protocol)
 
 ## Development
 
