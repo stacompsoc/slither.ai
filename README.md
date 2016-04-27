@@ -25,3 +25,4 @@ This is a list of various sites and resources which may be useful for the projec
 ## Development
 
 Please check out the issues and contribute!
+Development channel is `stacs.slack.com / #slither_ai`
