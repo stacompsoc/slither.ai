@@ -87,21 +87,36 @@ var Vector2 = (function() {
 
     // Returns a score of how desirable a piece of food is for the player
     var foodScore = function(food) {
-        var playerToFood = snakePosV.sub(new Vector2(food.rx,food.ry));
         var foodSize = food.sz * food.sz;
 
-        return foodSize/playerToFood.magnitude();
+        return foodSize/distanceToFood(food);
+    };
+
+    var distanceToFood = function(food) {
+        return snakePosV.sub(new Vector2(food.rx,food.ry)).magnitude();
+    };
+
+    var foodWithinFov = function(food) {
+        var towardsFood = directionTowards(new Vector2(food.rx, food.ry));
+        var snakeDir = snakeDirV.gameDirection();
+        return (gameAngleDifference(towardsFood, snakeDir) < (fov/2));
     };
 
     // Returns the piece of food the player will move towards
     // This is determined by calling "foodScore" on each piece of food
     var closestFood = function() {
         return foods.filter(function(food) {
-            // Filter food to that which is in the field of view of the snake
             if (food == null) return false;
-            var towardsFood = directionTowards(new Vector2(food.rx, food.ry));
-            var snakeDir = snakeDirV.gameDirection();
-            return (gameAngleDifference(towardsFood, snakeDir) < (fov/2));
+
+            if (distanceToFood(food) > 60) {
+                return true;
+            } else {
+                if (foodWithinFov(food)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
         }).reduce(function(best,current) {
             // Find the piece of food with the best score
             if (best == null) throw "No foods :(";
@@ -173,7 +188,7 @@ var Vector2 = (function() {
             sumVec = sumVec.scalarMul(-1);
             var threshold = sumVec.magnitude();
 
-            if (threshold > 0.00027) {
+            if (threshold > 0.00026) {
                 var avoidDirection = directionTowards(snakePosV.add(sumVec));
                 status = "AVOIDING THREAT: " + avoidDirection;
                 setDirection(avoidDirection);
