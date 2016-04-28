@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Slither.ai
-// @version      0.3
+// @version      0.1
 // @description  try to take over the world!
 // @author       STACS
 // @match        http://slither.io
@@ -64,21 +64,27 @@ var Vector2 = (function() {
     // STATE
     var snakeDirV = new Vector2(0,0);
     var snakePosV = new Vector2(0,0);
+    var enabled = true;
+    var draw = true;
 
     // UI STUFF
     var status = "STARTING...";
-    var headerDiv = document.createElement('div');
-    headerDiv.style.zIndex = 100000000;
-    headerDiv.style.width = "100vw";
-    headerDiv.style.padding = "5px";
-    headerDiv.style.height = "40px";
-    headerDiv.style.background = "white";
-    headerDiv.id = "botInfoHeader";
-    document.getElementById("smh").appendChild(headerDiv);
-    headerDiv.textContent = status;
+
+    document.addEventListener('keydown', function(e) {
+        if (e.keyCode == 65) {
+            enabled = !enabled;
+        }
+    }, false);
 
     var repaintHeader = function() {
-        headerDiv.textContent = status;
+        var canvas = document.getElementsByTagName("canvas")[2];
+        var ctx = canvas.getContext("2d");
+        ctx.font = '30pt Helvetica';
+        ctx.fillStyle = "#7FFF00";
+        ctx.fillText("slither.ai v0.2 " + (enabled?"on":"off") + " - press 'a' to toggle", 50, 70);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText("status: " + status, 50, 110);
+        ctx.fill();
     };
 
     var distToPlayer = function(food) {
@@ -87,7 +93,7 @@ var Vector2 = (function() {
 
     // Returns a score of how desirable a piece of food is for the player
     var foodScore = function(food) {
-        var foodSize = food.sz * food.sz * 0.5;
+        var foodSize = food.sz;
 
         return foodSize/distanceToFood(food);
     };
@@ -163,11 +169,11 @@ var Vector2 = (function() {
         return new Vector2(mww2 + (vec.x - view_xx) * gsc, mhh2 + (vec.y - view_yy) * gsc);
     };
 
-    var drawLineOverlay = function(destination, colorString) {
+    var drawLineOverlay = function(destination, thickness, colorString) {
         var canvas = document.getElementsByTagName("canvas")[2];
         var ctx = canvas.getContext("2d");
         ctx.strokeStyle = colorString;
-        ctx.lineWidth = 7;
+        ctx.lineWidth = thickness;
 
         ctx.beginPath();
         var foodLineFrom = getDrawPosition(destination);
@@ -180,7 +186,8 @@ var Vector2 = (function() {
 
     // ----- /INTERFACE -----
     setInterval(function() {
-        if(!playing) return;
+        repaintHeader();
+        if(!enabled) return;
 
         try {
             var sumVec = new Vector2(0,0);
@@ -199,7 +206,7 @@ var Vector2 = (function() {
                             var opponentMagnitude = vecToOpponent.magnitude();
 
                             var normVec = vecToOpponent.norm();
-                            var vectorInverse = normVec.scalarMul(1/(opponentMagnitude*opponentMagnitude));
+                            var vectorInverse = normVec.scalarMul(3600/(gsc * (Math.pow(opponentMagnitude, 2))));
                             sumVec = sumVec.add(vectorInverse);
                         }
                     }
@@ -209,25 +216,22 @@ var Vector2 = (function() {
             sumVec = sumVec.scalarMul(-1);
             var threshold = sumVec.magnitude();
 
-            if (threshold > 0.00027) {
+            if (threshold > 1) {
                 var avoidDirection = directionTowards(snakePosV.add(sumVec));
-                status = "AVOIDING THREAT: " + avoidDirection;
+                status = "avoiding threat, threshold: " + threshold.toFixed(2);
                 setDirection(avoidDirection);
-                drawLineOverlay(snakePosV.add(sumVec.norm().scalarMul(200)), "#FF0000");
+                drawLineOverlay(snakePosV.add(sumVec.norm().scalarMul(200)), threshold * 10, "#FF0000");
             } else {
                 if (foods.length == 0) {
                     setDirection(directionTowards(new Vector2(grd/2, grd/2)));
-                    status = "GOING TOWARDS CENTRE";
+                    status = "returning to centre";
                 } else {
                     var closest = closestFood();
-                    status = "GETTING FOOD";
+                    status = "feeding, threshold: " + threshold.toFixed(2);
                     setDirection(directionTowards(new Vector2(closest.rx, closest.ry)));
-                    drawLineOverlay(new Vector2(closest.rx, closest.ry), "#7FFF00");
+                    drawLineOverlay(new Vector2(closest.rx, closest.ry), 7, "#7FFF00");
                 }
             }
-
-            // Update State and Screen
-            repaintHeader();
 
             if (snake) {
                 var newSnakePosV = new Vector2(snake.xx, snake.yy);
@@ -238,4 +242,8 @@ var Vector2 = (function() {
             console.log("Error caught: " + e);
         }
     }, 50);
+
+    //setInterval(function() {
+    //    repaintHeader();
+    //}, 10);
 })();
