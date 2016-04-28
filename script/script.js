@@ -62,18 +62,42 @@ var Vector2 = (function() {
  */
 var Cluster = (function(){
     
-    var TAU = 
-    var score = 0;
+    var TAU = 20;
     
     var Cluster = function(root) {
         this.root = root;
+        this.score = 0.0;
+        this.cardinality = 0;
     }
+   
+    var buildCluster = function(root, points){
+        
+        var stack = [];
+        
+        for (var point in points) {
+            if( point == null )
+                continue;
+                
+            var dist = Math.hypot(root.x - point.x, root.y - point.y);
+            
+            if(dist <= TAU){
+                stack.push(point);
+                points.splice(points.indexOf(point), 1);
+           
+                score += point.sz;
+                this.cardinality++;
+            }
+        }
+        
+        for (var point in stack) {
+            buildCluster(point, points);
+        }
+    };   
     
     Cluster.prototype.clusterise = function(points){
-        for (var point in points) {
-            
-        }
-    }
+        buildCluster(this.root, points);
+    };
+    
 })();
 
 (function() {
@@ -212,7 +236,12 @@ var Cluster = (function(){
         var radius = 60;
         
         var snakeHead = getDrawPosition(snakePosV);
-    }
+        
+        ctx.beginPath();
+        ctx.arc(snakeHead.x, snakeHead.y, radius, 0, 2* Math.PI, false);
+        ctx.fillStyle = "green";
+        ctx.fill();
+    };
 
     // ----- /INTERFACE -----
     setInterval(function() {
@@ -260,7 +289,7 @@ var Cluster = (function(){
                     status = "feeding, threshold: " + threshold.toFixed(2);
                     setDirection(directionTowards(new Vector2(closest.rx, closest.ry)));
                     drawLineOverlay(new Vector2(closest.rx, closest.ry), 7, "#7FFF00");
-                    
+                    drawFOV();
                 }
             }
 
