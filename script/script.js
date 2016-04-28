@@ -7,7 +7,9 @@
 // @grant        none
 // ==/UserScript==
 
-
+/**
+ * Represents a 2 dimensional vector in the Euclidean plane.
+ */
 var Vector2 = (function() {
     var Vector2 = function(x,y) {
         this.x = x;
@@ -54,6 +56,25 @@ var Vector2 = (function() {
     return Vector2;
 })();
 
+/**
+ * A cluster is a set of foods, where every food has another food in its proximity
+ * within a specified critical distance
+ */
+var Cluster = (function(){
+    
+    var TAU = 
+    var score = 0;
+    
+    var Cluster = function(root) {
+        this.root = root;
+    }
+    
+    Cluster.prototype.clusterise = function(points){
+        for (var point in points) {
+            
+        }
+    }
+})();
 
 (function() {
     'use strict';
@@ -183,6 +204,15 @@ var Vector2 = (function() {
         ctx.lineTo(foodLineTo.x,foodLineTo.y);
         ctx.stroke();
     };
+    
+    var drawFOV = function(){
+        var canvas = document.getElementsByTagName("canvas")[2];
+        var ctx = canvas.getContext("2d");
+        
+        var radius = 60;
+        
+        var snakeHead = getDrawPosition(snakePosV);
+    }
 
     // ----- /INTERFACE -----
     setInterval(function() {
@@ -230,6 +260,7 @@ var Vector2 = (function() {
                     status = "feeding, threshold: " + threshold.toFixed(2);
                     setDirection(directionTowards(new Vector2(closest.rx, closest.ry)));
                     drawLineOverlay(new Vector2(closest.rx, closest.ry), 7, "#7FFF00");
+                    
                 }
             }
 
