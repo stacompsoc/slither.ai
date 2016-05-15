@@ -67,6 +67,9 @@ var Vector2 = (function() {
     var enabled = true;
     var draw = true;
 
+    // The direction to point the player when we're next allowed to send a packet.
+    var targetDirection = 0;
+
     // UI STUFF
     var status = "STARTING...";
 
@@ -145,7 +148,7 @@ var Vector2 = (function() {
     // ----- INTERFACE -----
     var setDirection = function(direction) {
         if (direction >= 0 && direction <= 250) {
-            sendPacket(direction);
+            targetDirection = direction;
         } else {
             console.err("INVALID TURNING VALUE: " + direction);
         }
@@ -183,6 +186,11 @@ var Vector2 = (function() {
         ctx.lineTo(foodLineTo.x,foodLineTo.y);
         ctx.stroke();
     };
+
+    // Send packet to set player's direction on a delay, to avoid running in to rate-limit.
+    setInterval(function() {
+        sendPacket(targetDirection);
+    }, 55);
 
     // ----- /INTERFACE -----
     setInterval(function() {
